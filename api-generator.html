@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Progress API Generator - TOTVS OpenEdge</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0d1117;--bg2:#161b22;--bg3:#1c2128;--accent:#2d7aea;--accent2:#4090f0;--ok:#3fb950;--txt:#e6edf3;--txt2:#7d8590;--brd:#30363d;--red:#ff7b72;--blue:#a5d6ff;--gray:#8b949e}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);display:flex;height:100vh;overflow:hidden}
+.sidebar{width:440px;min-width:440px;background:var(--bg2);border-right:1px solid var(--brd);overflow-y:auto;padding:24px}
+.preview{flex:1;display:flex;flex-direction:column;overflow:hidden}
+h1{font-size:18px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+h1 span{color:var(--accent)}
+.subtitle{color:var(--txt2);font-size:12px;margin-bottom:20px}
+label{display:block;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+input,select{width:100%;padding:8px 12px;background:var(--bg3);border:1px solid var(--brd);border-radius:6px;color:var(--txt);font-size:14px;outline:none;margin-bottom:14px;transition:border .2s}
+input:focus,select:focus{border-color:var(--accent)}
+.row{display:flex;gap:12px}
+.row>*{flex:1}
+.section{margin-bottom:18px}
+.section-title{font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--brd);display:flex;align-items:center;gap:8px}
+.field-card{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:10px;margin-bottom:6px;position:relative;transition:all .2s}
+.field-card:hover{border-color:var(--accent)}
+.field-card .row{margin-bottom:0}
+.field-card label{margin-bottom:3px}
+.field-card input,.field-card select{margin-bottom:0;font-size:12px;padding:5px 8px}
+.del-btn{position:absolute;top:6px;right:6px;background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;opacity:.5;transition:opacity .2s}
+.del-btn:hover{opacity:1}
+.add-btn,.import-btn{width:100%;padding:10px;background:transparent;border:1px dashed var(--brd);border-radius:8px;color:var(--accent);cursor:pointer;font-size:13px;transition:all .2s;margin-bottom:6px}
+.add-btn:hover,.import-btn:hover{border-color:var(--accent);background:rgba(45,122,234,.1)}
+.import-btn{border-color:var(--ok);color:var(--ok)}
+.import-btn:hover{background:rgba(63,185,80,.1)}
+.check-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.check-row input{width:auto;margin:0}
+.check-row label{margin:0;text-transform:none;font-weight:400;color:var(--txt);font-size:13px}
+.tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--brd);padding:0 16px}
+.tab{padding:10px 20px;font-size:13px;color:var(--txt2);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s}
+.tab:hover{color:var(--txt)}
+.tab.active{color:var(--accent);border-color:var(--accent)}
+.toolbar{display:flex;justify-content:flex-end;gap:8px;padding:8px 16px;background:var(--bg2);border-bottom:1px solid var(--brd)}
+.btn{padding:6px 14px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+.btn-copy{background:var(--bg3);color:var(--txt);border:1px solid var(--brd)}
+.btn-copy:hover{border-color:var(--accent)}
+.btn-dl{background:var(--accent);color:#fff}
+.btn-dl:hover{background:var(--accent2)}
+.btn-gen{width:100%;padding:12px;background:linear-gradient(135deg,var(--accent),#1a5cbf);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:transform .1s}
+.btn-gen:hover{transform:scale(1.02)}
+#code-area{flex:1;overflow:auto;padding:20px;background:var(--bg);font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.6;white-space:pre;tab-size:4;color:var(--txt)}
+.kw{color:var(--red)}.str{color:var(--blue)}.cmt{color:var(--gray)}.fn{color:#d2a8ff}.num{color:#79c0ff}
+.toast{position:fixed;bottom:20px;right:20px;background:var(--ok);color:#000;padding:10px 20px;border-radius:8px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.modal-bg{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:100}
+.modal-bg.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--brd);border-radius:12px;width:700px;max-height:80vh;display:flex;flex-direction:column;overflow:hidden}
+.modal-header{padding:16px 20px;border-bottom:1px solid var(--brd);display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:16px}
+.modal-close{background:none;border:none;color:var(--txt2);font-size:20px;cursor:pointer}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--brd);display:flex;justify-content:flex-end;gap:8px}
+.tbl-select{width:100%;margin-bottom:16px}
+.tbl-select select{font-size:14px}
+.field-list{max-height:300px;overflow-y:auto}
+.field-row{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--brd);font-size:13px}
+.field-row:hover{background:var(--bg3)}
+.field-row input[type=checkbox]{width:auto;margin:0}
+.field-row .fname{flex:1;font-family:monospace}
+.field-row .ftype{width:100px;color:var(--accent);font-size:12px}
+.field-row .flabel{flex:1;color:var(--txt2);font-size:12px}
+.select-all{padding:8px 10px;border-bottom:2px solid var(--brd);font-size:12px;display:flex;align-items:center;gap:8px}
+.select-all input{width:auto;margin:0}
+.badge{background:var(--accent);color:#fff;font-size:11px;padding:2px 8px;border-radius:10px}
+.idx-info{margin-top:12px;padding:10px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--txt2)}
+.idx-info strong{color:var(--ok)}
+.api-card{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .2s}
+.api-card:hover{border-color:var(--accent)}
+.api-card.active{border-color:var(--accent);background:rgba(45,122,234,.15)}
+.api-card .api-name{font-size:13px;font-weight:600}
+.api-card .api-table{font-size:11px;color:var(--txt2)}
+.api-card .api-del{background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;opacity:.4;transition:opacity .2s}
+.api-card .api-del:hover{opacity:1}
+.table-card{background:var(--bg3);border:1px solid var(--brd);border-radius:8px;margin-bottom:10px;overflow:hidden}
+.table-header{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .2s}
+.table-header:hover{background:rgba(45,122,234,.08)}
+.table-header input[type=checkbox]{width:auto;margin:0}
+.table-header .tname{font-weight:600;font-size:13px;flex:1}
+.table-header .tcount{font-size:11px;color:var(--txt2)}
+.table-header .tarrow{color:var(--txt2);font-size:12px;transition:transform .2s}
+.table-header .tarrow.open{transform:rotate(90deg)}
+.table-fields{display:none;border-top:1px solid var(--brd);padding:6px 0}
+.table-fields.open{display:block}
+#code-editor{flex:1;background:var(--bg);color:var(--txt);border:none;outline:none;padding:20px;font-family:'Cascadia Code','Fira Code',monospace;font-size:13px;line-height:1.6;tab-size:4;resize:none}
+.edit-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2);cursor:pointer;text-transform:none;font-weight:400;margin-right:auto}
+.edit-toggle input{width:auto;margin:0}
+</style>
+</head>
+<body>
+<div class="sidebar">
+ <h1><span>&#9679;</span> Progress API Generator</h1>
+ <p class="subtitle">Gerador de APIs REST para OpenEdge/ABL - Padrao TOTVS</p>
+
+ <div class="section">
+  <div class="section-title">&#128196; Importar arquivo .df</div>
+  <input type="file" id="dfFile" accept=".df" style="display:none" onchange="loadDF(this)">
+  <button class="import-btn" onclick="document.getElementById('dfFile').click()">&#128194; Carregar arquivo .df (Data Definition)</button>
+ </div>
+
+ <!-- Lista de APIs geradas (multi-tabela) -->
+ <div class="section" id="apiListSection" style="display:none">
+  <div class="section-title">&#128203; APIs Geradas <span id="apiCount" class="badge">0</span></div>
+  <div id="apiList"></div>
+ </div>
+
+ <div class="section">
+  <div class="section-title">Identificacao da API</div>
+  <label>Nome da API (sem prefixo "custom")</label>
+  <input id="apiName" placeholder="ProductItemInfo" oninput="sync()">
+  <div class="row">
+   <div><label>Modulo</label>
+    <select id="module" onchange="sync()"><option value="enp">enp</option><option value="cdp">cdp</option><option value="cpp">cpp</option><option value="man">man</option></select>
+   </div>
+   <div><label>Versao</label><input id="version" value="2.00.00.000" oninput="sync()"></div>
+  </div>
+  <label>Tabela Progress</label>
+  <input id="table" placeholder="item" oninput="sync()">
+  <div class="row">
+   <div><label>Campo Chave (GET)</label><input id="keyField" placeholder="item.it-codigo" oninput="sync()"></div>
+   <div><label>Campo Filtro (BEGINS)</label><input id="filterField" placeholder="item.it-codigo" oninput="sync()"></div>
+  </div>
+ </div>
+
+ <div class="section">
+  <div class="section-title">Campos da Temp-Table</div>
+  <div id="fields"></div>
+  <button class="add-btn" onclick="addField()">+ Adicionar Campo</button>
+ </div>
+
+ <div class="section">
+  <div class="section-title">Opcoes</div>
+  <div class="check-row"><input type="checkbox" id="optAction" checked onchange="sync()"><label for="optAction">Incluir pi-action-v1 (POST)</label></div>
+  <div class="check-row"><input type="checkbox" id="optPath" checked onchange="sync()"><label for="optPath">Incluir pathParams (GET /id)</label></div>
+  <div class="check-row"><input type="checkbox" id="optTotal" checked onchange="sync()"><label for="optTotal">Incluir totalCount/iTotalHits</label></div>
+ </div>
+
+ <button class="btn-gen" onclick="downloadZip()">&#11015; Download ZIP (todos os arquivos)</button>
+</div>
+
+<div class="preview">
+ <div class="tabs">
+  <div class="tab active" data-tab="include" onclick="switchTab('include')">*V1.i</div>
+  <div class="tab" data-tab="rules" onclick="switchTab('rules')">*Rules.p</div>
+  <div class="tab" data-tab="controller" onclick="switchTab('controller')">*.p (Controller)</div>
+ </div>
+ <div class="toolbar">
+  <label class="edit-toggle"><input type="checkbox" id="editMode" onchange="toggleEdit()"> &#9998; Modo Edicao</label>
+  <button class="btn btn-copy" onclick="copyCode()">&#128203; Copiar</button>
+  <button class="btn btn-dl" onclick="downloadZip()">&#11015; ZIP</button>
+ </div>
+ <div id="code-area"></div>
+ <textarea id="code-editor" style="display:none" spellcheck="false" oninput="onCodeEdit()"></textarea>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Modal de selecao de tabela/campos do .df -->
+<div id="dfModal" class="modal-bg">
+ <div class="modal">
+  <div class="modal-header">
+   <h2>&#128196; Selecionar Tabelas e Campos</h2>
+   <button class="modal-close" onclick="closeModal()">&#10005;</button>
+  </div>
+  <div class="modal-body">
+   <div class="select-all" style="margin-bottom:12px;border-bottom:2px solid var(--brd);padding-bottom:10px">
+    <button class="btn btn-copy" onclick="toggleAllTables(true)" style="font-size:12px">&#9745; Marcar Todas</button>
+    <button class="btn btn-copy" onclick="toggleAllTables(false)" style="font-size:12px">&#9744; Desmarcar Todas</button>
+   </div>
+   <div id="dfTablesContainer"></div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-copy" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-dl" onclick="applyDF()">&#10003; Gerar APIs para tabelas selecionadas</button>
+  </div>
+ </div>
+</div>
+
+<script>
+/* ===== GENERATORS (imported by app.js) ===== */
+function getter(t){return{CHARACTER:'getCharacter',INTEGER:'getInteger',DECIMAL:'getDecimal',LOGICAL:'getLogical',DATE:'getCharacter',INT64:'getInt64'}[t]||'getCharacter'}
+
+function genIncludeFor(s){
+ var tn='tt-'+(s.apiName?toCamel(s.apiName).charAt(0).toLowerCase()+toCamel(s.apiName).slice(1):'nome');
+ var sn=s.apiName?toCamel(s.apiName).charAt(0).toLowerCase()+toCamel(s.apiName).slice(1):'nome';
+ var o='DEFINE TEMP-TABLE '+tn+" NO-UNDO SERIALIZE-NAME '"+sn+"':U\n";
+ s.fields.forEach(function(f){o+='    FIELD '+(f.name||'campo').padEnd(30)+' AS '+(f.type||'CHARACTER').padEnd(12)+" INITIAL ? SERIALIZE-NAME '"+f.sn+"':U\n"});
+ o+='    FIELD r-rowid'+'                          '+' AS CHARACTER    INITIAL ? SERIALIZE-NAME \'rRowid\':U\n    .';
+ return o;
+}
+
+function genControllerFor(s){
+ var fn='custom'+(s.apiName||'Nome'),m=s.module||'enp',v=s.version;
+ var o='USING Progress.Lang.Error.\nUSING com.totvs.framework.api.JsonApiResponseBuilder.\n\n{utp/ut-api.i}\n{utp/ut-api-utils.i}\n\n{include/i-prgvrs.i '+fn+' '+v+' }\n{include/i-license-manager.i '+fn+' '+m+'}\n\n{utp/ut-api-action.i pi-get         GET /~*/}\n{utp/ut-api-action.i pi-query       GET /~*}\n';
+ if(s.opts.action)o+='{utp/ut-api-action.i pi-action      POST /~*}\n';
+ o+='\n{utp/ut-api-notfound.i}\n{utils/ParseJsonResponseAddTotalHits.i}\n\n&global-define API_RULES "APIs/'+m+'/rules/'+fn+'Rules.p"\n\nDEFINE VARIABLE apiHandler AS HANDLE NO-UNDO.\n\n/*:T--- PROCEDURES V1 ---*/\n\n{include/customApi.i2 pi-query  pi-query-v1}\n{include/customApi.i1 pi-get    pi-get-v1}\n';
+ if(s.opts.action)o+='{include/customApi.i1 pi-action pi-action-v1}\n';
+ return o;
+}
+
+function genRulesFor(s){
+ var fn='custom'+(s.apiName||'Nome'),m=s.module||'enp',v=s.version;
+ var tn='tt-'+(s.apiName?toCamel(s.apiName).charAt(0).toLowerCase()+toCamel(s.apiName).slice(1):'nome');
+ var tb=s.table||'tabela',kf=s.keyField||tb+'.id',ff=s.filterField||kf;
+ var o='BLOCK-LEVEL ON ERROR UNDO, THROW.\n\nUSING PROGRESS.json.*.\nUSING PROGRESS.json.ObjectModel.*.\nUSING com.totvs.framework.api.*.\nUSING com.totvs.po.*.\n\n{include/i-prgvrs.i '+fn+'Rules '+v+' }\n{include/i-license-manager.i '+fn+'Rules '+m+'}\n\n{utp/ut-glob.i}\n{METHOD/dbotterr.i}\n{APIs/'+m+'/rules/'+fn+'V1.i}\n\n{cdp/utils.i}\n\nDEFINE TEMP-TABLE RowErrorsInfo NO-UNDO LIKE RowErrors.\n\n/*:T--- FUNCTIONS ---*/\n\nFUNCTION fn-has-row-errors RETURNS LOGICAL ():\n    FOR EACH RowErrors WHERE UPPER(RowErrors.ErrorType) = \'INTERNAL\':U:\n        DELETE RowErrors.\n    END.\n    RETURN CAN-FIND(FIRST RowErrors WHERE UPPER(RowErrors.ErrorSubType) = \'ERROR\':U).\nEND FUNCTION.\n\nFUNCTION fn-get-id-from-path RETURNS CHARACTER (INPUT oReq AS JsonAPIRequestParser):\n    DEFINE VARIABLE cId AS CHARACTER NO-UNDO.\n    ASSIGN cId = oReq:getPathParams():getCharacter(1) NO-ERROR.\n    RETURN cId.\nEND FUNCTION.\n\n';
+ if(s.opts.action){
+  o+='/*:T--- ACTION PROCEDURES V1 ---*/\n\nPROCEDURE pi-action-v1:\n\n    DEFINE INPUT  PARAM oInput      AS JsonObject NO-UNDO.\n    DEFINE OUTPUT PARAM oOutput     AS JsonObject NO-UNDO.\n    DEFINE OUTPUT PARAM TABLE FOR RowErrors.\n\n    DEFINE VARIABLE oRequest AS JsonAPIRequestParser NO-UNDO.\n    DEFINE VARIABLE oPayload AS JsonObject           NO-UNDO.\n\n    EMPTY TEMP-TABLE RowErrors.\n    EMPTY TEMP-TABLE RowErrorsInfo.\n\n    ASSIGN oRequest = NEW JsonAPIRequestParser(oInput)\n           oPayload = oInput:GetJsonObject("payload").\n\n    CREATE '+tn+'.\n';
+  if(s.fields.length>0){
+   o+='    ASSIGN ';
+   s.fields.forEach(function(f,i){var pad=i===0?'':' '.repeat(11);o+=pad+tn+'.'+(f.name||'campo').padEnd(28)+' = oPayload:'+getter(f.type)+"('"+f.sn+"':U) WHEN oPayload:has('"+f.sn+"':U)\n"});
+   o+='           .\n';
+  }
+  o+='\n    //Executar validacoes e regras de negocio.\n\n    IF NOT fn-has-row-errors() THEN DO:\n        oOutput = NEW JsonObject().\n        oOutput:ADD("sucess", TRUE).\n        IF CAN-FIND(FIRST RowErrorsInfo) THEN\n            oOutput:ADD("_messages", NEW Messages(INPUT TABLE RowErrorsInfo):toJsonArray()).\n    END.\n\n    CATCH eSysError AS PROGRESS.Lang.SysError:\n        CREATE RowErrors.\n        ASSIGN RowErrors.ErrorNumber      = 17006\n               RowErrors.ErrorDescription = eSysError:getMessage(1)\n               RowErrors.ErrorSubType     = "ERROR".\n    END.\n    FINALLY:\n        IF fn-has-row-errors() THEN DO:\n            UNDO, RETURN \'NOK\':U.\n        END.\n    END FINALLY.\n\nEND PROCEDURE.\n\n';
+ }
+ o+='/*:T--- QUERY PROCEDURES V1 ---*/\n\nPROCEDURE pi-query-v1:\n\n    DEFINE INPUT  PARAM oInput      AS JsonObject NO-UNDO.\n    DEFINE OUTPUT PARAM aOutput     AS JsonArray  NO-UNDO.\n    DEFINE OUTPUT PARAM lHasNext    AS LOGICAL    NO-UNDO INITIAL FALSE.\n    DEFINE OUTPUT PARAM iTotalHits  AS INTEGER    NO-UNDO.\n    DEFINE OUTPUT PARAM TABLE FOR RowErrors.\n\n    DEFINE VARIABLE oRequest    AS JsonAPIRequestParser  NO-UNDO.\n    DEFINE VARIABLE iCount      AS INTEGER INITIAL 0     NO-UNDO.\n    DEFINE VARIABLE cExcept     AS CHARACTER             NO-UNDO.\n    DEFINE VARIABLE cQuery      AS CHARACTER             NO-UNDO.\n    DEFINE VARIABLE cBy         AS CHARACTER             NO-UNDO.\n    DEFINE VARIABLE lTotalCount AS LOGICAL               NO-UNDO INITIAL FALSE.\n    DEFINE VARIABLE pfilter     AS CHARACTER             NO-UNDO.\n\n    EMPTY TEMP-TABLE RowErrors.\n    EMPTY TEMP-TABLE '+tn+'.\n\n    ASSIGN oRequest = NEW JsonAPIRequestParser(oInput).\n\n    ASSIGN cExcept = JsonAPIUtils:getTableExceptFieldsBySerializedFields(\n        TEMP-TABLE '+tn+':HANDLE, oRequest:getFields()).\n\n    IF oRequest:getQueryParams():has("totalCount") THEN\n        ASSIGN lTotalCount = LOGICAL(oRequest:getQueryParams():getJsonArray("totalCount"):getCharacter(1)).\n\n    ASSIGN cQuery = \' FOR EACH '+tb+' NO-LOCK \':U.\n\n    IF oRequest:getQueryParams():has("filter") THEN DO:\n        ASSIGN pfilter = JsonAPIUtils:getPropertyJsonObject(oRequest:getQueryParams(),\'filter\').\n        ASSIGN cQuery = cQuery + " WHERE '+ff+' BEGINS \'" + pfilter + "\'".\n    END.\n\n    ASSIGN cQuery = buildWhere(TEMP-TABLE '+tn+':HANDLE, oRequest:getQueryParams(), "", cQuery)\n           cBy    = buildBy(TEMP-TABLE '+tn+':HANDLE, oRequest:getOrder())\n           cQuery = cQuery + cBy.\n\n    DEFINE QUERY findQuery FOR '+tb+' SCROLLING.\n    QUERY findQuery:QUERY-PREPARE(cQuery).\n    QUERY findQuery:QUERY-OPEN().\n    QUERY findQuery:REPOSITION-TO-ROW(oRequest:getStartRow()).\n\n    REPEAT:\n        GET NEXT findQuery.\n        IF QUERY findQuery:QUERY-OFF-END THEN LEAVE.\n        IF oRequest:getPageSize() EQ iCount THEN DO:\n            ASSIGN lHasNext = TRUE.\n            LEAVE.\n        END.\n        CREATE '+tn+'.\n        TEMP-TABLE '+tn+':HANDLE:DEFAULT-BUFFER-HANDLE:BUFFER-COPY(\n            BUFFER '+tb+':HANDLE, cExcept).\n        ASSIGN '+tn+'.r-rowid = STRING(ROWID('+tb+')).\n        ASSIGN iCount = iCount + 1.\n    END.\n\n    ASSIGN aOutput = JsonAPIUtils:convertTempTableToJsonArray(\n        TEMP-TABLE '+tn+':HANDLE, (LENGTH(TRIM(cExcept)) > 0)).\n\n    iTotalHits = iCount.\n\n    IF lTotalCount EQ YES THEN DO:\n        DO WHILE NOT QUERY findQuery:QUERY-OFF-END:\n            iTotalHits = iTotalHits + 1.\n            GET NEXT findQuery.\n        END.\n    END.\n\n    CATCH eSysError AS PROGRESS.Lang.SysError:\n        CREATE RowErrors.\n        ASSIGN RowErrors.ErrorNumber      = 17006\n               RowErrors.ErrorDescription = eSysError:getMessage(1)\n               RowErrors.ErrorSubType     = "ERROR".\n    END.\n    FINALLY:\n        IF fn-has-row-errors() THEN DO:\n            UNDO, RETURN \'NOK\':U.\n        END.\n    END FINALLY.\n\nEND PROCEDURE.\n\n';
+ o+='/*:T--- GET PROCEDURES V1 ---*/\n\nPROCEDURE pi-get-v1:\n\n    DEFINE INPUT  PARAM oInput  AS JsonObject NO-UNDO.\n    DEFINE OUTPUT PARAM oOutput AS JsonObject NO-UNDO.\n    DEFINE OUTPUT PARAM TABLE FOR RowErrors.\n\n    DEFINE VARIABLE oRequest    AS JsonAPIRequestParser NO-UNDO.\n    DEFINE VARIABLE cExcept     AS CHARACTER            NO-UNDO.\n    DEFINE VARIABLE tableKey    AS CHARACTER            NO-UNDO.\n\n    ASSIGN oRequest = NEW JsonAPIRequestParser(oInput).\n    ASSIGN tableKey = fn-get-id-from-path(oRequest).\n\n    ASSIGN cExcept = JsonAPIUtils:getTableExceptFieldsBySerializedFields(\n        TEMP-TABLE '+tn+':HANDLE, oRequest:getFields()).\n\n    FOR FIRST '+tb+' NO-LOCK WHERE '+kf+' EQ tableKey:\n        CREATE '+tn+'.\n        TEMP-TABLE '+tn+':HANDLE:DEFAULT-BUFFER-HANDLE:BUFFER-COPY(\n            BUFFER '+tb+':HANDLE, cExcept).\n        ASSIGN '+tn+'.r-rowid = STRING(ROWID('+tb+')).\n        ASSIGN oOutput = JsonAPIUtils:convertTempTableFirstItemToJsonObject(\n            TEMP-TABLE '+tn+':HANDLE, (LENGTH(TRIM(cExcept)) > 0)).\n    END.\n\n    CATCH eSysError AS PROGRESS.Lang.SysError:\n        CREATE RowErrors.\n        ASSIGN RowErrors.ErrorNumber      = 17006\n               RowErrors.ErrorDescription = eSysError:getMessage(1)\n               RowErrors.ErrorSubType     = "ERROR".\n    END.\n    FINALLY:\n        IF fn-has-row-errors() THEN DO:\n            UNDO, RETURN \'NOK\':U.\n        END.\n    END FINALLY.\n\nEND PROCEDURE.\n';
+ return o;
+}
+
+/* ===== STATE ===== */
+var apis=[];var currentApi=0;var activeTab='include';var editMode=false;
+var editedCode={};var dfData={tables:[]};
+
+function toCamel(s){return s.replace(/[-_](.)/g,function(_,c){return c.toUpperCase()})}
+function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show')},2000)}
+function mapType(t){var m={CHARACTER:'CHARACTER',INTEGER:'INTEGER',DECIMAL:'DECIMAL',LOGICAL:'LOGICAL',DATE:'DATE',INT64:'INT64',RECID:'INTEGER',DATETIME:'CHARACTER'};return m[t.toUpperCase()]||'CHARACTER'}
+
+function newApiState(){return{apiName:'',module:'enp',version:'2.00.00.000',table:'',keyField:'',filterField:'',fields:[],opts:{action:true,pathParams:true,totalCount:true}}}
+
+function ensureApi(){if(apis.length===0){apis.push(newApiState());currentApi=0}}
+
+/* ===== DF PARSER ===== */
+function parseDF(text){
+ var tables=[];var ct=null,cf=null,ci=null;
+ var lines=text.split(/\r?\n/);
+ for(var i=0;i<lines.length;i++){
+  var ln=lines[i].trimEnd();
+  var m1=ln.match(/^ADD TABLE "([^"]+)"/i);
+  if(m1){ct={name:m1[1],label:'',fields:[],indexes:[]};tables.push(ct);cf=null;ci=null;continue}
+  if(ct&&!cf&&!ci){var ml=ln.match(/^\s+LABEL "([^"]*)"/i);if(ml)ct.label=ml[1];var md=ln.match(/^\s+DESCRIPTION "([^"]*)"/i);if(md&&!ct.label)ct.label=md[1]}
+  var m2=ln.match(/^ADD FIELD "([^"]+)" OF "([^"]+)" AS (\w+)/i);
+  if(m2){cf={name:m2[1],type:m2[3].toUpperCase(),label:''};if(ct&&m2[2]===ct.name)ct.fields.push(cf);ci=null;continue}
+  if(cf){var ml2=ln.match(/^\s+LABEL "([^"]*)"/i);if(ml2)cf.label=ml2[1];if(ln.trim()===''||ln.match(/^ADD /))cf=null}
+  var m3=ln.match(/^ADD INDEX "([^"]+)" ON "([^"]+)"/i);
+  if(m3){ci={name:m3[1],unique:false,primary:false,fields:[]};if(ct&&m3[2]===ct.name)ct.indexes.push(ci);cf=null;continue}
+  if(ci){if(/UNIQUE/i.test(ln))ci.unique=true;if(/PRIMARY/i.test(ln))ci.primary=true;var mif=ln.match(/INDEX-FIELD "([^"]+)"/i);if(mif)ci.fields.push(mif[1]);if(ln.trim()===''||ln.match(/^ADD /))ci=null}
+ }
+ return tables;
+}
+
+function loadDF(input){
+ var file=input.files[0];if(!file)return;
+ var reader=new FileReader();
+ reader.onload=function(e){
+  dfData.tables=parseDF(e.target.result);
+  if(dfData.tables.length===0){toast('Nenhuma tabela encontrada');return}
+  showDFModal();
+ };
+ reader.readAsText(file,'latin1');input.value='';
+}
+
+function showDFModal(){
+ var c=document.getElementById('dfTablesContainer');c.innerHTML='';
+ dfData.tables.forEach(function(tbl,ti){
+  var card=document.createElement('div');card.className='table-card';
+  var hdr=document.createElement('div');hdr.className='table-header';
+  hdr.innerHTML='<input type="checkbox" checked data-ti="'+ti+'"><span class="tname">'+tbl.name+(tbl.label?' - '+tbl.label:'')+'</span><span class="tcount">'+tbl.fields.length+' campos</span><span class="tarrow">&#9654;</span>';
+  hdr.onclick=function(e){if(e.target.type==='checkbox')return;var fl=card.querySelector('.table-fields');var ar=card.querySelector('.tarrow');fl.classList.toggle('open');ar.classList.toggle('open')};
+  var fl=document.createElement('div');fl.className='table-fields';
+  var sa=document.createElement('div');sa.className='select-all';
+  sa.innerHTML='<input type="checkbox" checked onchange="toggleTableFields(this,'+ti+')"><label style="margin:0;text-transform:none;font-weight:400;color:var(--txt)">Todos</label>';
+  fl.appendChild(sa);
+  tbl.fields.forEach(function(f,fi){
+   var r=document.createElement('div');r.className='field-row';
+   r.innerHTML='<input type="checkbox" checked data-ti="'+ti+'" data-fi="'+fi+'"><span class="fname">'+f.name+'</span><span class="ftype">'+f.type+'</span><span class="flabel">'+(f.label||'')+'</span>';
+   fl.appendChild(r);
+  });
+  if(tbl.indexes.length>0){
+   var idx=document.createElement('div');idx.className='idx-info';
+   var html='<strong>Indices:</strong><br>';
+   tbl.indexes.forEach(function(ix){html+='&bull; '+ix.name+(ix.primary?' PRIMARY':'')+(ix.unique?' UNIQUE':'')+' - '+ix.fields.join(', ')+'<br>'});
+   var pk=tbl.indexes.find(function(x){return x.primary});
+   if(pk&&pk.fields.length>0)html+='<br><strong>Campo chave sugerido:</strong> '+tbl.name+'.'+pk.fields[0];
+   idx.innerHTML=html;fl.appendChild(idx);
+  }
+  card.appendChild(hdr);card.appendChild(fl);c.appendChild(card);
+ });
+ document.getElementById('dfModal').classList.add('show');
+ toast(dfData.tables.length+' tabela(s) encontrada(s)');
+}
+
+function toggleTableFields(cb,ti){
+ document.querySelectorAll('#dfTablesContainer input[data-ti="'+ti+'"][data-fi]').forEach(function(x){x.checked=cb.checked});
+}
+
+function closeModal(){document.getElementById('dfModal').classList.remove('show')}
+
+function toggleAllTables(checked){
+ document.querySelectorAll('.table-header input[type=checkbox]').forEach(function(cb){cb.checked=checked});
+ document.querySelectorAll('.table-fields input[type=checkbox]').forEach(function(cb){cb.checked=checked});
+}
+
+function applyDF(){
+ apis=[];editedCode={};
+ document.querySelectorAll('.table-header input[type=checkbox]:checked').forEach(function(tcb){
+  var ti=parseInt(tcb.dataset.ti);var tbl=dfData.tables[ti];
+  var s=newApiState();
+  s.table=tbl.name;
+  var apiN=toCamel(tbl.name);s.apiName=apiN.charAt(0).toUpperCase()+apiN.slice(1);
+  var pk=tbl.indexes.find(function(x){return x.primary});
+  if(pk&&pk.fields.length>0){s.keyField=tbl.name+'.'+pk.fields[0];s.filterField=tbl.name+'.'+pk.fields[0]}
+  document.querySelectorAll('#dfTablesContainer input[data-ti="'+ti+'"][data-fi]:checked').forEach(function(fcb){
+   var f=tbl.fields[parseInt(fcb.dataset.fi)];
+   s.fields.push({name:f.name,type:mapType(f.type),sn:toCamel(f.name)});
+  });
+  apis.push(s);
+ });
+ if(apis.length===0){toast('Selecione ao menos uma tabela');return}
+ currentApi=0;closeModal();loadApiToForm(0);renderApiList();
+ toast(apis.length+' API(s) gerada(s)!');
+}
+
+/* ===== API LIST ===== */
+function renderApiList(){
+ var sec=document.getElementById('apiListSection');
+ var list=document.getElementById('apiList');
+ if(apis.length<=1){sec.style.display='none';return}
+ sec.style.display='block';
+ document.getElementById('apiCount').textContent=apis.length;
+ list.innerHTML='';
+ apis.forEach(function(a,i){
+  var c=document.createElement('div');c.className='api-card'+(i===currentApi?' active':'');
+  c.innerHTML='<div><div class="api-name">custom'+(a.apiName||'Nome')+'</div><div class="api-table">'+a.table+'</div></div><button class="api-del" onclick="event.stopPropagation();removeApi('+i+')">&times;</button>';
+  c.onclick=function(){saveFormToApi();currentApi=i;loadApiToForm(i);renderApiList();render()};
+  list.appendChild(c);
+ });
+}
+
+function removeApi(i){
+ apis.splice(i,1);delete editedCode[i];
+ if(apis.length===0){apis.push(newApiState())}
+ if(currentApi>=apis.length)currentApi=apis.length-1;
+ loadApiToForm(currentApi);renderApiList();render();
+}
+
+/* ===== FORM <-> STATE ===== */
+function loadApiToForm(i){
+ var s=apis[i];if(!s)return;
+ document.getElementById('apiName').value=s.apiName;
+ document.getElementById('module').value=s.module;
+ document.getElementById('version').value=s.version;
+ document.getElementById('table').value=s.table;
+ document.getElementById('keyField').value=s.keyField;
+ document.getElementById('filterField').value=s.filterField;
+ document.getElementById('optAction').checked=s.opts.action;
+ document.getElementById('optPath').checked=s.opts.pathParams;
+ document.getElementById('optTotal').checked=s.opts.totalCount;
+ var fd=document.getElementById('fields');fd.innerHTML='';
+ s.fields.forEach(function(f){addFieldWithData(f.name,f.type,f.sn)});
+ render();
+}
+
+function saveFormToApi(){
+ if(!apis[currentApi])return;var s=apis[currentApi];
+ s.apiName=document.getElementById('apiName').value;
+ s.module=document.getElementById('module').value;
+ s.version=document.getElementById('version').value;
+ s.table=document.getElementById('table').value;
+ s.keyField=document.getElementById('keyField').value;
+ s.filterField=document.getElementById('filterField').value;
+ s.opts.action=document.getElementById('optAction').checked;
+ s.opts.pathParams=document.getElementById('optPath').checked;
+ s.opts.totalCount=document.getElementById('optTotal').checked;
+ s.fields=[];
+ document.querySelectorAll('.field-card').forEach(function(c){
+  s.fields.push({name:c.querySelector('.fn').value,type:c.querySelector('.ft').value,sn:c.querySelector('.fs').value});
+ });
+}
+
+function sync(){ensureApi();saveFormToApi();renderApiList();render()}
+
+/* ===== FIELDS ===== */
+function addField(){addFieldWithData('','CHARACTER','')}
+function addFieldWithData(name,type,sn){
+ var d=document.getElementById('fields');var c=document.createElement('div');c.className='field-card';
+ c.innerHTML='<button class="del-btn" onclick="this.parentElement.remove();sync()">&#10005;</button><div class="row"><div><label>Campo</label><input class="fn" value="'+name+'" placeholder="desc-item" oninput="autoSN(this);sync()"></div><div><label>Tipo</label><select class="ft" onchange="sync()"><option'+(type==='CHARACTER'?' selected':'')+'>CHARACTER</option><option'+(type==='INTEGER'?' selected':'')+'>INTEGER</option><option'+(type==='DECIMAL'?' selected':'')+'>DECIMAL</option><option'+(type==='LOGICAL'?' selected':'')+'>LOGICAL</option><option'+(type==='DATE'?' selected':'')+'>DATE</option><option'+(type==='INT64'?' selected':'')+'>INT64</option></select></div><div><label>JSON</label><input class="fs" value="'+sn+'" placeholder="descItem" oninput="sync()"></div></div>';
+ d.appendChild(c);
+}
+function autoSN(el){var card=el.closest('.field-card');var sn=card.querySelector('.fs');sn.value=toCamel(el.value)}
+
+/* ===== EDIT MODE ===== */
+function toggleEdit(){
+ editMode=document.getElementById('editMode').checked;
+ document.getElementById('code-area').style.display=editMode?'none':'block';
+ document.getElementById('code-editor').style.display=editMode?'block':'none';
+ render();
+}
+
+function onCodeEdit(){
+ if(!editedCode[currentApi])editedCode[currentApi]={};
+ editedCode[currentApi][activeTab]=document.getElementById('code-editor').value;
+}
+
+function getCode(apiIdx,tab){
+ if(editedCode[apiIdx]&&editedCode[apiIdx][tab])return editedCode[apiIdx][tab];
+ var s=apis[apiIdx];if(!s)return '';
+ if(tab==='include')return genIncludeFor(s);
+ if(tab==='rules')return genRulesFor(s);
+ return genControllerFor(s);
+}
+
+/* ===== HIGHLIGHT ===== */
+function hl(code){
+ var KW=['DEFINE','TEMP-TABLE','FIELD','AS','CHARACTER','INTEGER','DECIMAL','LOGICAL','DATE','INT64','NO-UNDO','INITIAL','SERIALIZE-NAME','PROCEDURE','END','USING','FOR','EACH','FIRST','NO-LOCK','WHERE','BEGINS','ASSIGN','CREATE','BUFFER','HANDLE','QUERY','SCROLLING','REPEAT','GET','NEXT','LEAVE','IF','THEN','DO','RETURN','CATCH','FINALLY','FUNCTION','RETURNS','INPUT','OUTPUT','PARAM','TABLE','TRUE','FALSE','BLOCK-LEVEL','ON','ERROR','UNDO','THROW','WHEN','NOT','EQ','AND','OR','NEW','EMPTY','LIKE'];
+ return code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/(\/\/.*$|\/\*.*?\*\/)/gm,'<span class="cmt">$1</span>').replace(/('[^']*')/g,'<span class="str">$1</span>').replace(/("[^"]*")/g,'<span class="str">$1</span>').replace(/(\{[^}]+\})/g,'<span class="fn">$1</span>').replace(new RegExp('\\b('+KW.join('|')+')\\b','gi'),'<span class="kw">$1</span>').replace(/\b(\d+)\b/g,'<span class="num">$1</span>');
+}
+
+/* ===== RENDER ===== */
+function switchTab(tab){activeTab=tab;render()}
+function render(){
+ ensureApi();
+ var code=getCode(currentApi,activeTab);
+ if(editMode){document.getElementById('code-editor').value=code}
+ else{document.getElementById('code-area').innerHTML=hl(code)}
+ document.querySelectorAll('.tab').forEach(function(t){t.classList.toggle('active',t.dataset.tab===activeTab)});
+}
+
+/* ===== ACTIONS ===== */
+function copyCode(){navigator.clipboard.writeText(getCode(currentApi,activeTab));toast('Copiado!')}
+
+function downloadZip(){
+ if(typeof JSZip==='undefined'){toast('JSZip nao disponivel');return}
+ ensureApi();saveFormToApi();
+ var z=new JSZip();
+ apis.forEach(function(s,i){
+  var fn='custom'+(s.apiName||'Nome');
+  z.file(fn+'V1.i',getCode(i,'include'));
+  z.file(fn+'Rules.p',getCode(i,'rules'));
+  z.file(fn+'.p',getCode(i,'controller'));
+ });
+ var zipName=apis.length===1?'custom'+(apis[0].apiName||'Nome')+'_api.zip':'apis_generated.zip';
+ z.generateAsync({type:'base64'}).then(function(b64){
+  var a=document.createElement('a');a.href='data:application/zip;base64,'+b64;a.download=zipName;
+  a.style.display='none';document.body.appendChild(a);a.click();
+  setTimeout(function(){document.body.removeChild(a)},500);
+  toast('ZIP: '+zipName+' ('+apis.length*3+' arquivos)');
+ });
+}
+
+document.addEventListener('DOMContentLoaded',function(){ensureApi();loadApiToForm(0);render()});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,91 @@
+<div class="sidebar">
+ <h1><span>&#9679;</span> Progress API Generator</h1>
+ <p class="subtitle">Gerador de APIs REST para OpenEdge/ABL - Padrao TOTVS</p>
+
+ <div class="section">
+  <div class="section-title">&#128196; Importar arquivo .df</div>
+  <input type="file" id="dfFile" accept=".df" style="display:none" onchange="loadDF(this)">
+  <button class="import-btn" onclick="document.getElementById('dfFile').click()">&#128194; Carregar arquivo .df (Data Definition)</button>
+ </div>
+
+ <!-- Lista de APIs geradas (multi-tabela) -->
+ <div class="section" id="apiListSection" style="display:none">
+  <div class="section-title">&#128203; APIs Geradas <span id="apiCount" class="badge">0</span></div>
+  <div id="apiList"></div>
+ </div>
+
+ <div class="section">
+  <div class="section-title">Identificacao da API</div>
+  <label>Nome da API (sem prefixo "custom")</label>
+  <input id="apiName" placeholder="ProductItemInfo" oninput="sync()">
+  <div class="row">
+   <div><label>Modulo</label>
+    <select id="module" onchange="sync()"><option value="enp">enp</option><option value="cdp">cdp</option><option value="cpp">cpp</option><option value="man">man</option></select>
+   </div>
+   <div><label>Versao</label><input id="version" value="2.00.00.000" oninput="sync()"></div>
+  </div>
+  <label>Tabela Progress</label>
+  <input id="table" placeholder="item" oninput="sync()">
+  <div class="row">
+   <div><label>Campo Chave (GET)</label><input id="keyField" placeholder="item.it-codigo" oninput="sync()"></div>
+   <div><label>Campo Filtro (BEGINS)</label><input id="filterField" placeholder="item.it-codigo" oninput="sync()"></div>
+  </div>
+ </div>
+
+ <div class="section">
+  <div class="section-title">Campos da Temp-Table</div>
+  <div id="fields"></div>
+  <button class="add-btn" onclick="addField()">+ Adicionar Campo</button>
+ </div>
+
+ <div class="section">
+  <div class="section-title">Opcoes</div>
+  <div class="check-row"><input type="checkbox" id="optAction" checked onchange="sync()"><label for="optAction">Incluir pi-action-v1 (POST)</label></div>
+  <div class="check-row"><input type="checkbox" id="optPath" checked onchange="sync()"><label for="optPath">Incluir pathParams (GET /id)</label></div>
+  <div class="check-row"><input type="checkbox" id="optTotal" checked onchange="sync()"><label for="optTotal">Incluir totalCount/iTotalHits</label></div>
+ </div>
+
+ <button class="btn-gen" onclick="downloadZip()">&#11015; Download ZIP (todos os arquivos)</button>
+ <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+  <span id="saveStatus" style="font-size:11px;color:var(--ok);opacity:.5">&#128190; Auto-save ativo</span>
+  <button onclick="clearSaved()" style="background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;opacity:.6">&#128465; Limpar dados salvos</button>
+ </div>
+</div>
+
+<div class="preview">
+ <div class="tabs">
+  <div class="tab active" data-tab="include" onclick="switchTab('include')">*V1.i</div>
+  <div class="tab" data-tab="rules" onclick="switchTab('rules')">*Rules.p</div>
+  <div class="tab" data-tab="controller" onclick="switchTab('controller')">*.p (Controller)</div>
+ </div>
+ <div class="toolbar">
+  <label class="edit-toggle"><input type="checkbox" id="editMode" onchange="toggleEdit()"> &#9998; Modo Edicao</label>
+  <button class="btn btn-copy" onclick="copyCode()">&#128203; Copiar</button>
+  <button class="btn btn-dl" onclick="downloadZip()">&#11015; ZIP</button>
+ </div>
+ <div id="code-area"></div>
+ <textarea id="code-editor" style="display:none" spellcheck="false" oninput="onCodeEdit()"></textarea>
+</div>
+
+<div id="toast" class="toast"></div>
+
+<!-- Modal de selecao de tabela/campos do .df -->
+<div id="dfModal" class="modal-bg">
+ <div class="modal">
+  <div class="modal-header">
+   <h2>&#128196; Selecionar Tabelas e Campos</h2>
+   <button class="modal-close" onclick="closeModal()">&#10005;</button>
+  </div>
+  <div class="modal-body">
+   <div class="select-all" style="margin-bottom:12px;border-bottom:2px solid var(--brd);padding-bottom:10px">
+    <button class="btn btn-copy" onclick="toggleAllTables(true)" style="font-size:12px">&#9745; Marcar Todas</button>
+    <button class="btn btn-copy" onclick="toggleAllTables(false)" style="font-size:12px">&#9744; Desmarcar Todas</button>
+   </div>
+   <div id="dfTablesContainer"></div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-copy" onclick="closeModal()">Cancelar</button>
+   <button class="btn btn-dl" onclick="applyDF()">&#10003; Gerar APIs para tabelas selecionadas</button>
+  </div>
+ </div>
+</div>
