@@ -1,6 +1,6 @@
 """Build api-generator.html from parts"""
-OUT = r"c:\AntiG2026\flex_java_wgen200\api-generator\api-generator.html"
-D = r"c:\AntiG2026\flex_java_wgen200\api-generator\parts"
+OUT = r"C:\Tools_Progress_2026\api-generator\api-generator.html"
+D = r"C:\Tools_Progress_2026\api-generator\parts"
 
 CSS = open(D+r"\style.css",'r', encoding='utf-8').read()
 GEN = open(D+r"\generators.js",'r', encoding='utf-8').read()

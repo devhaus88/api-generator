@@ -127,7 +127,7 @@ A ferramenta segue rigorosamente o padrão do framework TOTVS Datasul:
 ## 📁 Estrutura do Projeto
 
 ```
-📁 api-generator/
+📁 C:\Tools_Progress_2026\api-generator\
 ├── api-generator.html     ← Aplicação completa (arquivo único)
 ├── parts/                 ← Código-fonte separado (CSS, JS, HTML)
 │   ├── style.css

@@ -6,7 +6,7 @@
 ## Como Abrir
 
 ### Opção 1 — Duplo Clique (mais simples)
-1. Navegue até a pasta `C:\api-generator\`
+1. Navegue até a pasta `C:\Tools_Progress_2026\api-generator\`
 2. Dê **duplo clique** no arquivo `api-generator.html`
 3. O browser padrão (Chrome/Edge) vai abrir a ferramenta
 
@@ -14,7 +14,7 @@
 1. Abra o **Prompt de Comando** ou **PowerShell**
 2. Execute:
    ```
-   python -m http.server 9090 --directory C:\api-generator
+   python -m http.server 9090 --directory C:\Tools_Progress_2026\api-generator
    ```
 3. Abra o browser e acesse: `http://localhost:9090/api-generator.html`
 
@@ -148,7 +148,7 @@ Se você quer apenas confirmar que a ferramenta funciona:
 ## Estrutura de Pastas do Projeto
 
 ```
-C:\api-generator\
+C:\Tools_Progress_2026\api-generator\
 ├── api-generator.html      ← A ferramenta (duplo clique para abrir)
 ├── PRD.md                  ← Requisitos do produto
 ├── README.md               ← Documentação geral
