@@ -465,7 +465,38 @@ function downloadZip(){
  });
 }
 
+/* ===== LICENSE GATE ===== */
+var VALID_KEY_B64 = "R0VSQURPUjIwMjY="; // GERADOR2026
+
+function isLicenseValid() {
+ return localStorage.getItem('apigen_license') === VALID_KEY_B64;
+}
+
+function unlockApp() {
+ var input = document.getElementById('licenseKey');
+ var err = document.getElementById('licenseError');
+ var val = input.value.trim();
+ 
+ if (btoa(val) === VALID_KEY_B64) {
+  localStorage.setItem('apigen_license', VALID_KEY_B64);
+  document.getElementById('licenseScreen').classList.add('hidden');
+  err.classList.remove('show');
+  toast('Licença validada com sucesso!');
+ } else {
+  err.textContent = 'Chave inválida. Tente novamente.';
+  err.classList.add('show');
+  input.classList.remove('shake');
+  void input.offsetWidth; // trigger reflow
+  input.classList.add('shake');
+ }
+}
+
 document.addEventListener('DOMContentLoaded',function(){
+ if(!isLicenseValid()) {
+  document.getElementById('licenseScreen').classList.remove('hidden');
+ } else {
+  document.getElementById('licenseScreen').classList.add('hidden');
+ }
  if(templates.length===0) templates=getDefaultTemplates();
  var restored=autoLoad();
  if(restored){

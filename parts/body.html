@@ -1,3 +1,16 @@
+<div id="licenseScreen" class="license-screen">
+ <div class="license-box">
+  <div class="license-icon">&#128274;</div>
+  <h2>Acesso Restrito</h2>
+  <p>Insira a chave de licença PRO para acessar o gerador.</p>
+  <div class="license-input-group">
+   <input type="password" id="licenseKey" placeholder="Chave de licença" onkeypress="if(event.key==='Enter') unlockApp()">
+   <button onclick="unlockApp()" class="btn-unlock">Desbloquear</button>
+  </div>
+  <div id="licenseError" class="license-error"></div>
+ </div>
+</div>
+
 <div class="sidebar">
  <h1><span>&#9679;</span> Progress API Generator</h1>
  <p class="subtitle">Gerador de APIs REST para OpenEdge/ABL - Padrao TOTVS</p>
