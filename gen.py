@@ -2,10 +2,10 @@
 OUT = r"c:\AntiG2026\flex_java_wgen200\api-generator\api-generator.html"
 D = r"c:\AntiG2026\flex_java_wgen200\api-generator\parts"
 
-CSS = open(D+r"\style.css",'r').read()
-GEN = open(D+r"\generators.js",'r').read()
-APP = open(D+r"\app.js",'r').read()
-BODY = open(D+r"\body.html",'r').read()
+CSS = open(D+r"\style.css",'r', encoding='utf-8').read()
+GEN = open(D+r"\generators.js",'r', encoding='utf-8').read()
+APP = open(D+r"\app.js",'r', encoding='utf-8').read()
+BODY = open(D+r"\body.html",'r', encoding='utf-8').read()
 
 html = f"""<!DOCTYPE html>
 <html lang="pt-BR">

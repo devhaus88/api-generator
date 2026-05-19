@@ -16,7 +16,9 @@
 
  <div class="section">
   <div class="section-title">Identificacao da API</div>
-  <label>Nome da API (sem prefixo "custom")</label>
+  <label>Template a utilizar</label>
+  <select id="apiTemplate" onchange="sync()"></select>
+  <label style="margin-top:10px">Nome da API (sem prefixo "custom")</label>
   <input id="apiName" placeholder="ProductItemInfo" oninput="sync()">
   <div class="row">
    <div><label>Modulo</label>
@@ -46,6 +48,7 @@
  </div>
 
  <button class="btn-gen" onclick="downloadZip()">&#11015; Download ZIP (todos os arquivos)</button>
+ <button class="btn-copy" onclick="openTemplateManager()" style="width:100%;margin-top:10px;padding:12px;cursor:pointer;border-radius:4px;border:none;font-weight:bold;background:var(--bg2);color:var(--txt);border:1px solid var(--brd)">&#9881; Gerenciar Templates</button>
  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
   <span id="saveStatus" style="font-size:11px;color:var(--ok);opacity:.5">&#128190; Auto-save ativo</span>
   <button onclick="clearSaved()" style="background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;opacity:.6">&#128465; Limpar dados salvos</button>
@@ -53,11 +56,7 @@
 </div>
 
 <div class="preview">
- <div class="tabs">
-  <div class="tab active" data-tab="include" onclick="switchTab('include')">*V1.i</div>
-  <div class="tab" data-tab="rules" onclick="switchTab('rules')">*Rules.p</div>
-  <div class="tab" data-tab="controller" onclick="switchTab('controller')">*.p (Controller)</div>
- </div>
+ <div class="tabs"></div>
  <div class="toolbar">
   <label class="edit-toggle"><input type="checkbox" id="editMode" onchange="toggleEdit()"> &#9998; Modo Edicao</label>
   <button class="btn btn-copy" onclick="copyCode()">&#128203; Copiar</button>
@@ -89,3 +88,44 @@
   </div>
  </div>
 </div>
+
+<!-- Modal Gerenciador de Templates -->
+<div id="tplModal" class="modal-bg">
+ <div class="modal" style="max-width:900px;width:95%">
+  <div class="modal-header">
+   <h2>&#9881; Gerenciador de Templates</h2>
+   <button class="modal-close" onclick="closeTemplateManager()">&#10005;</button>
+  </div>
+  <div class="modal-body" style="display:flex;gap:15px;height:65vh">
+   <div style="flex:1;border-right:1px solid var(--brd);padding-right:10px;display:flex;flex-direction:column;gap:10px">
+    <button class="btn btn-dl" onclick="newTemplate()">+ Novo Template</button>
+    <div id="tplList" style="overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:5px"></div>
+   </div>
+   <div id="tplEditor" style="flex:3;display:none;flex-direction:column;gap:10px;overflow-y:auto;padding-right:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+     <div style="flex:1;margin-right:10px">
+        <label style="font-size:12px;opacity:0.7">Nome do Template</label>
+        <input id="tplEditName" placeholder="Nome do Template" oninput="saveCurrentTemplate()" style="width:100%;margin:0">
+     </div>
+     <button onclick="deleteCurrentTemplate()" style="background:var(--red);color:white;border:none;padding:8px 12px;border-radius:4px;cursor:pointer;align-self:flex-end">&#128465; Excluir Template</button>
+    </div>
+    
+    <div style="background:var(--bg);padding:10px;border-radius:6px;border:1px solid var(--brd)">
+        <h4 style="margin:0 0 5px 0">Tags disponíveis:</h4>
+        <div style="font-size:11px;opacity:0.8;font-family:monospace">
+            {{apiName}} {{lowerApiName}} {{table}} {{module}} {{version}} {{keyField}} {{filterField}}<br>
+            {{#if action}} ... {{/if}}<br>
+            {{#each fields}} {{name}} {{type}} {{sn}} {{namePad}} {{typePad}} {{getter}} {{/each}}
+        </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+     <h3 style="margin:0;font-size:14px;color:var(--txt)">Arquivos do Template</h3>
+     <button class="btn btn-copy" onclick="addFileToTemplate()">+ Adicionar Arquivo</button>
+    </div>
+    <div id="tplFilesList" style="display:flex;flex-direction:column;gap:15px"></div>
+   </div>
+  </div>
+ </div>
+</div>
+
